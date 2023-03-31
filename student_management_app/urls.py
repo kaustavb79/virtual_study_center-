@@ -5,6 +5,8 @@ from .import HodViews, StaffViews, StudentViews
 
 
 urlpatterns = [
+    path("captcha/",include("captcha.urls")),
+
     path('', views.loginPage, name="login"),
     # path('accounts/', include('django.contrib.auth.urls')),
     path('doLogin/', views.doLogin, name="doLogin"),
@@ -58,7 +60,9 @@ urlpatterns = [
     path('admin_get_attendance_student/', HodViews.admin_get_attendance_student, name="admin_get_attendance_student"),
     path('admin_profile/', HodViews.admin_profile, name="admin_profile"),
     path('admin_profile_update/', HodViews.admin_profile_update, name="admin_profile_update"),
-    
+    path('add_resource/', HodViews.add_resource, name="add_resource"),
+    path('add_resource_save/', HodViews.add_resource_save, name="add_resource_save"),
+
 
 
     # URLS for Staff
@@ -90,4 +94,5 @@ urlpatterns = [
     path('student_profile/', StudentViews.student_profile, name="student_profile"),
     path('student_profile_update/', StudentViews.student_profile_update, name="student_profile_update"),
     path('student_view_result/', StudentViews.student_view_result, name="student_view_result"),
+    path('student_view_library/', StudentViews.student_view_library, name="student_view_library"),
 ]

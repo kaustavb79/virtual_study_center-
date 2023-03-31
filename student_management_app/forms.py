@@ -1,10 +1,15 @@
-from django import forms 
+from captcha.fields import CaptchaField
+from django import forms
 from django.forms import Form
 from student_management_app.models import Courses, SessionYearModel
 
 
 class DateInput(forms.DateInput):
     input_type = "date"
+
+
+class LoginCaptchForm(forms.Form):
+    captcha = CaptchaField(required=False, label='')
 
 
 class AddStudentForm(forms.Form):
@@ -14,6 +19,7 @@ class AddStudentForm(forms.Form):
     last_name = forms.CharField(label="Last Name", max_length=50, widget=forms.TextInput(attrs={"class":"form-control"}))
     username = forms.CharField(label="Username", max_length=50, widget=forms.TextInput(attrs={"class":"form-control"}))
     address = forms.CharField(label="Address", max_length=50, widget=forms.TextInput(attrs={"class":"form-control"}))
+    enrolment_num = forms.CharField(label="Enrolment Number", max_length=50, widget=forms.TextInput(attrs={"class":"form-control"}))
 
     #For Displaying Courses
     try:

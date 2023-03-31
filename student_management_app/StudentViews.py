@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from django.core.files.storage import FileSystemStorage #To upload Profile Picture
+from django.core.files.storage import FileSystemStorage  # To upload Profile Picture
 from django.urls import reverse
-import datetime # To Parse input DateTime into Python Date Time Object
+import datetime  # To Parse input DateTime into Python Date Time Object
 
-from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, LeaveReportStudent, FeedBackStudent, StudentResult
+from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, \
+    LeaveReportStudent, FeedBackStudent, StudentResult, Resources
 
 
 def student_home(request):
@@ -23,13 +24,15 @@ def student_home(request):
     subject_data = Subjects.objects.filter(course_id=student_obj.course_id)
     for subject in subject_data:
         attendance = Attendance.objects.filter(subject_id=subject.id)
-        attendance_present_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=True, student_id=student_obj.id).count()
-        attendance_absent_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=False, student_id=student_obj.id).count()
+        attendance_present_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=True,
+                                                                   student_id=student_obj.id).count()
+        attendance_absent_count = AttendanceReport.objects.filter(attendance_id__in=attendance, status=False,
+                                                                  student_id=student_obj.id).count()
         subject_name.append(subject.subject_name)
         data_present.append(attendance_present_count)
         data_absent.append(attendance_absent_count)
-    
-    context={
+
+    context = {
         "total_attendance": total_attendance,
         "attendance_present": attendance_present,
         "attendance_absent": attendance_absent,
@@ -42,10 +45,10 @@ def student_home(request):
 
 
 def student_view_attendance(request):
-    student = Students.objects.get(admin=request.user.id) # Getting Logged in Student Data
-    course = student.course_id # Getting Course Enrolled of LoggedIn Student
+    student = Students.objects.get(admin=request.user.id)  # Getting Logged in Student Data
+    course = student.course_id  # Getting Course Enrolled of LoggedIn Student
     # course = Courses.objects.get(id=student.course_id.id) # Getting Course Enrolled of LoggedIn Student
-    subjects = Subjects.objects.filter(course_id=course) # Getting the Subjects of Course Enrolled
+    subjects = Subjects.objects.filter(course_id=course)  # Getting the Subjects of Course Enrolled
     context = {
         "subjects": subjects
     }
@@ -74,7 +77,8 @@ def student_view_attendance_post(request):
         stud_obj = Students.objects.get(admin=user_obj)
 
         # Now Accessing Attendance Data based on the Range of Date Selected and Subject Selected
-        attendance = Attendance.objects.filter(attendance_date__range=(start_date_parse, end_date_parse), subject_id=subject_obj)
+        attendance = Attendance.objects.filter(attendance_date__range=(start_date_parse, end_date_parse),
+                                               subject_id=subject_obj)
         # Getting Attendance Report based on the attendance details obtained above
         attendance_reports = AttendanceReport.objects.filter(attendance_id__in=attendance, student_id=stud_obj)
 
@@ -89,7 +93,7 @@ def student_view_attendance_post(request):
         }
 
         return render(request, 'student_template/student_attendance_data.html', context)
-       
+
 
 def student_apply_leave(request):
     student_obj = Students.objects.get(admin=request.user.id)
@@ -110,7 +114,8 @@ def student_apply_leave_save(request):
 
         student_obj = Students.objects.get(admin=request.user.id)
         try:
-            leave_report = LeaveReportStudent(student_id=student_obj, leave_date=leave_date, leave_message=leave_message, leave_status=0)
+            leave_report = LeaveReportStudent(student_id=student_obj, leave_date=leave_date,
+                                              leave_message=leave_message, leave_status=0)
             leave_report.save()
             messages.success(request, "Applied for Leave.")
             return redirect('student_apply_leave')
@@ -150,7 +155,7 @@ def student_profile(request):
     user = CustomUser.objects.get(id=request.user.id)
     student = Students.objects.get(admin=user)
 
-    context={
+    context = {
         "user": user,
         "student": student
     }
@@ -178,7 +183,7 @@ def student_profile_update(request):
             student = Students.objects.get(admin=customuser.id)
             student.address = address
             student.save()
-            
+
             messages.success(request, "Profile Updated Successfully")
             return redirect('student_profile')
         except:
@@ -195,6 +200,9 @@ def student_view_result(request):
     return render(request, "student_template/student_view_result.html", context)
 
 
-
-
-
+def student_view_library(request):
+    resources = Resources.objects.all()
+    context = {
+        "resources":resources
+    }
+    return render(request, "student_template/student_view_library.html", context)

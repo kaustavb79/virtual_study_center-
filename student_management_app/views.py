@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 
 from student_management_app.EmailBackEnd import EmailBackEnd
+from student_management_app.forms import LoginCaptchForm
 
 
 def home(request):
@@ -12,7 +13,8 @@ def home(request):
 
 
 def loginPage(request):
-    return render(request, 'login.html')
+    form = LoginCaptchForm()
+    return render(request, 'login.html',{'form':form})
 
 
 
@@ -20,6 +22,9 @@ def doLogin(request):
     if request.method != "POST":
         return HttpResponse("<h2>Method Not Allowed</h2>")
     else:
+        form = LoginCaptchForm(request.POST)
+        if form.is_valid():
+            print('success')
         user = EmailBackEnd.authenticate(request, username=request.POST.get('email'), password=request.POST.get('password'))
         if user != None:
             login(request, user)
@@ -27,11 +32,11 @@ def doLogin(request):
             #return HttpResponse("Email: "+request.POST.get('email')+ " Password: "+request.POST.get('password'))
             if user_type == '1':
                 return redirect('admin_home')
-                
+
             elif user_type == '2':
                 # return HttpResponse("Staff Login")
                 return redirect('staff_home')
-                
+
             elif user_type == '3':
                 # return HttpResponse("Student Login")
                 return redirect('student_home')

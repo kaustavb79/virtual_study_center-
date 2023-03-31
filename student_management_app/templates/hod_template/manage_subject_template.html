@@ -61,6 +61,7 @@
                                 <tr>
                                 <th>ID</th>
                                 <th>Subject Name</th>
+                                <th>Subject Code</th>
                                 <th>Course</th>
                                 <th>Staff</th>
                                 <th>Created At</th>
@@ -73,6 +74,7 @@
                                 <tr>
                                 <td>{{ subject.id }}</td>
                                 <td>{{ subject.subject_name }}</td>
+                                <td>{{ subject.subject_code }}</td>
                                 <td>{{ subject.course_id.course_name }}</td>
                                 <td>{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</td>
                                 <td>{{ subject.created_at }}</td>

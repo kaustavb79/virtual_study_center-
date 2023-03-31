@@ -1,0 +1,166 @@
+{% extends 'hod_template/base_template.html' %}
+
+{% block page_title %}
+    Add Resource Material
+{% endblock page_title %}
+
+{% block main_content %}
+
+{% load static %}
+
+<section class="content">
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-md-12">
+                    <!-- general form elements -->
+                    <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Add Resource Material</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <!-- form start -->
+                    <form role="form" method="POST" action="{% url 'add_resource_save' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                                {% comment %} Display Messages {% endcomment %}
+                                {% if messages %}
+                                <div class="form-group">
+                                <div class="col-12">
+                                    {% for message in messages %}
+                                    {% if message.tags == "error" %}
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 10px;">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        </div>
+                                    {% elif message.tags == "success" %}
+                                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 10px;">
+                                        {{ message }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                                </div>
+                                {% endif %}
+                            
+
+                        <div class="card-body">
+
+                            <div class="form-group">
+                                <label>Course </label>
+                                <select class="form-control course" name="course">
+                                    <option value="">Select Course</option>
+                                    {% for course in courses %}
+                                        <option value="{{ course.id }}">{{ course.course_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Subject </label>
+                                <select class="form-control subject" name="subject">
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Material Type </label>
+                                <select class="form-control material_type" name="material_type">
+                                    <option value="">Select</option>
+                                    <option value="video_lecture">Video Lecture</option>
+                                    <option value="digital_book">Digital Book</option>
+                                    <option value="assignment">Assignment</option>
+                                    <option value="notes">Notes</option>
+                                </select>
+                            </div>
+
+
+                        </div>
+                        <!-- /.card-body -->
+
+                        <div class="card-footer">
+                        <button type="submit" class="btn btn-primary submit_btn" disabled> Add Material</button>
+                        </div>
+                    </form>
+                    </div>
+                    <!-- /.card -->
+
+                </div>
+            </div>
+
+        </div><!-- /.container-fluid -->
+      </section>
+
+  {% endblock main_content %}
+
+
+{% block custom_js %}
+
+<script>
+
+    var subjects = [];
+    {% for subject in subjects %}
+        var temp = {};
+        temp['id'] = "{{ subject.id }}";
+        temp['subject_name'] = "{{ subject.subject_name }}";
+        temp['subject_code'] = "{{ subject.subject_code }}";
+        temp['course_name'] = "{{ subject.course_id.course_name }}";
+        subjects.push(temp);
+    {% endfor %}
+
+    $('.course').change(function(){
+        var course = $(this).find(":selected").text();
+        $(".subject").html("<option selected>Select Subject</option>");
+
+        for(var i=0; i< subjects.length; i++){
+            if(course === subjects[i]['course_name']){
+                $(".subject").append("<option value='"+subjects[i]['id']+"'>"+subjects[i]['subject_code']+"</option>");
+            }
+        }
+    });
+
+    $('.material_type').change(function(){
+        var material_type = $(this).find(":selected").val();
+
+        $('.file_upload').remove();
+
+        var html_text = ``;
+        if(material_type === "video_lecture"){
+            html_text = `
+                <div class="form-group file_upload">
+                    <input class="form-control" type="file" name="fileobs1[]" id="formFileMultiple" multiple accept=".mp4,.mkv,.avx,.webm"/>
+                </div>
+            `;
+        }
+        else if(material_type === "digital_book"){
+            html_text = `
+                <div class="form-group file_upload">
+                    <input class="form-control" type="file" name="fileobs1[]" id="formFileMultiple" multiple accept=".pdf,.docx,.xlsx"/>
+                </div>
+            `;
+        }
+        else if(material_type === "assignment"){
+            html_text = `
+                <div class="form-group file_upload">
+                    <input class="form-control" type="file" name="fileobs1[]" id="formFileMultiple" multiple accept=".pdf,.docx"/>
+                </div>
+            `;
+        }
+        else if(material_type === "notes"){
+            html_text = `
+                <div class="form-group file_upload">
+                    <input class="form-control" type="file" name="fileobs1[]" id="formFileMultiple" multiple accept=".pdf,.docx,.txt"/>
+                </div>
+            `;
+        }
+
+        $('.card-body').append(html_text);
+        $('.submit_btn').removeAttr('disabled');
+
+    });
+</script>
+{% endblock custom_js %}

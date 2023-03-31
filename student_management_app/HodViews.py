@@ -1,3 +1,6 @@
+from pathlib import Path
+
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib import messages
@@ -7,8 +10,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 import json
 
-from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport
+from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, \
+    FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport, Resources, \
+    ResourceUrls
 from .forms import AddStudentForm, EditStudentForm
+from .library import upload_file_to_s3
 
 
 def admin_home(request):
@@ -347,6 +353,7 @@ def add_student_save(request):
             session_year_id = form.cleaned_data['session_year_id']
             course_id = form.cleaned_data['course_id']
             gender = form.cleaned_data['gender']
+            enrolment_num = form.cleaned_data['enrolment_num']
 
             # Getting Profile Pic first
             # First Check whether the file is selected or not
@@ -372,10 +379,12 @@ def add_student_save(request):
 
                 user.students.gender = gender
                 user.students.profile_pic = profile_pic_url
+                user.students.enrolment_num = enrolment_num
                 user.save()
                 messages.success(request, "Student Added Successfully!")
                 return redirect('add_student')
-            except:
+            except Exception as e:
+                print(e)
                 messages.error(request, "Failed to Add Student!")
                 return redirect('add_student')
         else:
@@ -507,6 +516,7 @@ def add_subject_save(request):
         return redirect('add_subject')
     else:
         subject_name = request.POST.get('subject')
+        subject_code = request.POST.get('subject_code')
 
         course_id = request.POST.get('course')
         course = Courses.objects.get(id=course_id)
@@ -515,7 +525,7 @@ def add_subject_save(request):
         staff = CustomUser.objects.get(id=staff_id)
 
         try:
-            subject = Subjects(subject_name=subject_name, course_id=course, staff_id=staff)
+            subject = Subjects(subject_name=subject_name,subject_code=subject_code, course_id=course, staff_id=staff)
             subject.save()
             messages.success(request, "Subject Added Successfully!")
             return redirect('add_subject')
@@ -551,12 +561,14 @@ def edit_subject_save(request):
     else:
         subject_id = request.POST.get('subject_id')
         subject_name = request.POST.get('subject')
+        subject_code = request.POST.get('subject_code')
         course_id = request.POST.get('course')
         staff_id = request.POST.get('staff')
 
         try:
             subject = Subjects.objects.get(id=subject_id)
             subject.subject_name = subject_name
+            subject.subject_code = subject_code
 
             course = Courses.objects.get(id=course_id)
             subject.course_id = course
@@ -587,6 +599,58 @@ def delete_subject(request, subject_id):
         messages.error(request, "Failed to Delete Subject.")
         return redirect('manage_subject')
 
+
+def add_resource(request):
+    subjects = Subjects.objects.all()
+    courses = Courses.objects.all()
+
+    context = {
+        "subjects": subjects,
+        "courses": courses,
+    }
+    return render(request, 'hod_template/add_resource_material.html', context)
+
+def add_resource_save(request):
+    if request.method != "POST":
+        messages.error(request, "Method Not Allowed!")
+        return redirect('add_resource')
+    else:
+        subject_id = request.POST.get('subject')
+        course_id = request.POST.get('course')
+        material_type = request.POST.get('material_type')
+
+        course_get_qs = Courses.objects.get(pk=course_id)
+        subject_get_qs = Subjects.objects.get(pk=subject_id)
+
+        local_path = f"media/{course_get_qs.course_name}/{subject_get_qs.subject_code}/{material_type}/"
+
+        path = Path(local_path).mkdir(exist_ok=True,parents=True)
+
+        if request.FILES:
+            files = request.FILES.getlist('fileobs1[]')
+            for request_file in files:
+                print("request_file : ",request_file)
+                filename = request_file.name
+                fs = FileSystemStorage()
+                file_path_without_media = fs.save(f"{course_get_qs.course_name}/{subject_get_qs.subject_code}/{material_type}/" + filename, request_file)
+                file_path = "media/"+file_path_without_media
+                s3_path = f"{course_get_qs.course_name}/{subject_get_qs.subject_code}/{material_type}/{filename}"
+
+                s3_file_url, is_upload_successful = upload_file_to_s3(bucket=settings.S3_BUCKET, local_file=file_path,s3_file=s3_path)
+                print("is_upload_successful: ",is_upload_successful)
+                if is_upload_successful:
+                    url_qs = ResourceUrls.objects.create(url=s3_file_url)
+                    Resources.objects.create(
+                        material_type=material_type,
+                        course=course_get_qs,
+                        subject=subject_get_qs,
+                        urls=url_qs,
+                    )
+            messages.success(request, "Subject Added Successfully!")
+            return redirect('add_resource')
+        else:
+            messages.error(request, "No File Uploaded!")
+            return redirect('add_resource')
 
 @csrf_exempt
 def check_email_exist(request):

@@ -1,0 +1,102 @@
+{% extends 'student_template/base_template.html' %}
+
+{% block page_title %}
+    Library
+{% endblock page_title %}
+
+{% block main_content %}
+
+{% load static %}
+
+<section class="content">
+        <div class="container-fluid">
+
+            
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Result</h3>
+                        </div>
+
+                        <div class="card-body">
+                           <div class="table-responsive">
+                                <table class="table">
+                                    <thead class="thead-light">
+                                    <tr>
+                                        <th>#ID</th>
+                                        <th>Course</th>
+                                        <th>Subject</th>
+                                        <th>Material Type</th>
+                                        <th>URL</th>
+                                    </tr>
+                                    </thead>
+                                    
+                                    {% for row in resources %}
+                                    <tr>
+                                        <td>{{ row.id }}</td>
+                                        <td>{{ row.course.course_name }}</td>
+                                        <td>{{ row.subject.subject_code }}  {{ row.subject.subject_name }}</td>
+                                        <td>{{ row.material_type }}</td>
+                                        <td>
+                                            {% if row.material_type == "video_lecture" %}
+                                                <button class="btn btn-info video" data-toggle="modal" data-target="#videoModal">Play Video</button>
+
+                                                <div class="modal fade" id="videoModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                      <div class="modal-content">
+                                                        <div class="modal-body">
+                                                          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                                          <video controls width="100%" >
+                                                            <source src="{{ row.urls.url }}" type="video/mp4">
+                                                          </video>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                </div>
+
+                                            {% else %}
+                                                <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModalDoc">View</button>
+
+                                                <!-- Modal -->
+                                                <div id="myModalDoc" class="modal fade" role="dialog">
+                                                    <div class="modal-dialog modal-lg">
+
+                                                        <!-- Modal content-->
+                                                        <div class="modal-content">
+                                                            <div class="modal-body">
+
+                                                                <iframe src="http://docs.google.com/gview?url={{ row.urls.url }}&embedded=true" frameborder="0" width="100%" height="400px"></iframe>
+
+                                                                <div class="modal-footer">
+                                                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                </div>
+            </div>
+
+
+
+
+        </div><!-- /.container-fluid -->
+      </section>
+
+  {% endblock main_content %}
+
+{% block custom_js %}
+
+{% endblock custom_js %}

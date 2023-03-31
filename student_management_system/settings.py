@@ -1,7 +1,9 @@
-
+import json
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+import boto3
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -14,7 +16,8 @@ SECRET_KEY = '(i#*06f#keydy_fh17bf=$0f6v)^wr^l7*u4gq42m*sztu#2_m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -26,6 +29,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'captcha',
 
     'student_management_app',
 ]
@@ -66,10 +71,16 @@ WSGI_APPLICATION = 'student_management_system.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+DB_CONFIG = json.load(open(os.path.join(BASE_DIR, 'resources', 'virtual_study_center', 'config', "db_config.json"), "r+"))
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': DB_CONFIG['mysql']['db_name'],
+        'USER': DB_CONFIG['mysql']['user'],
+        'PASSWORD': DB_CONFIG['mysql']['pass'],
+        'HOST': DB_CONFIG['mysql']['host'],
+        'PORT': DB_CONFIG['mysql']['port'],
     }
 }
 
@@ -125,3 +136,54 @@ AUTH_USER_MODEL = "student_management_app.CustomUser"
 
 # Registering Custom Backend "EmailBackEnd"
 AUTHENTICATION_BACKENDS = ['student_management_app.EmailBackEnd.EmailBackEnd']
+
+
+os.environ["AWS_CONFIG_FILE"] = "resources\\virtual_study_center\\config\\config.ini"
+S3_BUCKET = "ignouresources"
+session = boto3.Session(profile_name="study_cent")
+S3_CLIENT = session.client('s3')
+
+"""
+----- DJANGO LOGGER -----
+"""
+
+LOGS_DIR = BASE_DIR + "/logs"
+
+if os.path.exists(LOGS_DIR) and os.path.isdir(LOGS_DIR):
+    print("LOGS_DIR: ",LOGS_DIR)
+else:
+    os.mkdir(LOGS_DIR)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+            'level': 'DEBUG'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': LOGS_DIR + '/server.log',
+            'formatter': 'verbose',
+        },
+        'mail_admin': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console', 'file', 'mail_admin'],
+            'propagate': True,
+        },
+    },
+}

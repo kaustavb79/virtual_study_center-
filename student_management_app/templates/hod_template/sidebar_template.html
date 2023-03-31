@@ -120,6 +120,16 @@
               </a>
             </li>
 
+            <li class="nav-item">
+              {% url 'add_resource' as add_resource %}
+              <a href="{{ add_resource }}" class="nav-link {% if request.path == add_resource %} active {% endif %}">
+                <i class="nav-icon fas fa-folder-open"></i>
+                <p>
+                  Add Resource Material
+                </p>
+              </a>
+            </li>
+
 
             <li class="nav-item">
               {% url 'manage_session' as manage_session %}
