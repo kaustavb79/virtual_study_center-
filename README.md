@@ -2,7 +2,6 @@
 This is a Simple Student Management System Developed for Educational Purpose using Python (Django).
 Feel free to make changes based on your requirements.
 
-[Project Demo on YouTube](https://www.youtube.com/watch?v=kArCR96m7uo "Django Student Management System Demo")
 
 I've created this project while learnging Django and followed tutorial series from **SuperCoders**
 
@@ -20,6 +19,7 @@ And if you like this project then ADD a STAR ⭐️  to this project 👆
 7. View Student Attendance
 8. Review and Reply Student/Staff Feedback
 9. Review (Approve/Reject) Student/Staff Leave
+10. Add learning Material/Resources for students
 
 ### B. Staff/Teachers Can
 1. See the Overall Summary Charts related to their students, their subjects, leave status, etc.
@@ -33,7 +33,8 @@ And if you like this project then ADD a STAR ⭐️  to this project 👆
 2. View Attendance
 3. View Result
 4. Apply for Leave
-5. Send Feedback to HOD
+5. Send Feedback to HOD 
+6. View Material/Resources for learning purposes
 
 
 ## Support Developer
@@ -142,23 +143,6 @@ $  python manage.py createsuperuser
 ```
 Then Add Email, Username and Password
 
-**or Use Default Credentials**
-
-*For HOD /SuperAdmin*
-Email: admin@gmail.com
-Password: admin
-
-*For Staff*
-Email: staff@gmail.com
-Password: staff
-
-*For Student*
-Email: student@gmail.com
-Password: student
 
 
-
-## For Sponsor or Projects Enquiry
-1. Email - hi@vijaythapa.com
-2. LinkedIn - [vijaythapa](https://www.linkedin.com/in/vijaythapa "Vijay Thapa on LinkedIn")
 
