@@ -201,7 +201,8 @@ def student_view_result(request):
 
 
 def student_view_library(request):
-    resources = Resources.objects.all()
+    student = Students.objects.get(admin=request.user.id)
+    resources = Resources.objects.filter(course=student.course_id)
     context = {
         "resources":resources
     }

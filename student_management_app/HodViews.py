@@ -4,7 +4,7 @@ from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib import messages
-from django.core.files.storage import FileSystemStorage #To upload Profile Picture
+from django.core.files.storage import FileSystemStorage  # To upload Profile Picture
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
@@ -13,6 +13,7 @@ import json
 from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, \
     FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport, Resources, \
     ResourceUrls
+from .EmailBackEnd import send_mail_to_student
 from .forms import AddStudentForm, EditStudentForm
 from .library import upload_file_to_s3
 
@@ -35,7 +36,7 @@ def admin_home(request):
         course_name_list.append(course.course_name)
         subject_count_list.append(subjects)
         student_count_list_in_course.append(students)
-    
+
     subject_all = Subjects.objects.all()
     subject_list = []
     student_count_list_in_subject = []
@@ -44,11 +45,11 @@ def admin_home(request):
         student_count = Students.objects.filter(course_id=course.id).count()
         subject_list.append(subject.subject_name)
         student_count_list_in_subject.append(student_count)
-    
+
     # For Saffs
-    staff_attendance_present_list=[]
-    staff_attendance_leave_list=[]
-    staff_name_list=[]
+    staff_attendance_present_list = []
+    staff_attendance_leave_list = []
+    staff_name_list = []
 
     staffs = Staffs.objects.all()
     for staff in staffs:
@@ -60,9 +61,9 @@ def admin_home(request):
         staff_name_list.append(staff.admin.first_name)
 
     # For Students
-    student_attendance_present_list=[]
-    student_attendance_leave_list=[]
-    student_name_list=[]
+    student_attendance_present_list = []
+    student_attendance_leave_list = []
+    student_name_list = []
 
     students = Students.objects.all()
     for student in students:
@@ -70,11 +71,10 @@ def admin_home(request):
         absent = AttendanceReport.objects.filter(student_id=student.id, status=False).count()
         leaves = LeaveReportStudent.objects.filter(student_id=student.id, leave_status=1).count()
         student_attendance_present_list.append(attendance)
-        student_attendance_leave_list.append(leaves+absent)
+        student_attendance_leave_list.append(leaves + absent)
         student_name_list.append(student.admin.first_name)
 
-
-    context={
+    context = {
         "all_student_count": all_student_count,
         "subject_count": subject_count,
         "course_count": course_count,
@@ -111,7 +111,8 @@ def add_staff_save(request):
         address = request.POST.get('address')
 
         try:
-            user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=2)
+            user = CustomUser.objects.create_user(username=username, password=password, email=email,
+                                                  first_name=first_name, last_name=last_name, user_type=2)
             user.staffs.address = address
             user.save()
             messages.success(request, "Staff Added Successfully!")
@@ -119,7 +120,6 @@ def add_staff_save(request):
         except:
             messages.error(request, "Failed to Add Staff!")
             return redirect('add_staff')
-
 
 
 def manage_staff(request):
@@ -159,19 +159,18 @@ def edit_staff_save(request):
             user.email = email
             user.username = username
             user.save()
-            
+
             # INSERTING into Staff Model
             staff_model = Staffs.objects.get(admin=staff_id)
             staff_model.address = address
             staff_model.save()
 
             messages.success(request, "Staff Updated Successfully.")
-            return redirect('/edit_staff/'+staff_id)
+            return redirect('/edit_staff/' + staff_id)
 
         except:
             messages.error(request, "Failed to Update Staff.")
-            return redirect('/edit_staff/'+staff_id)
-
+            return redirect('/edit_staff/' + staff_id)
 
 
 def delete_staff(request, staff_id):
@@ -183,8 +182,6 @@ def delete_staff(request, staff_id):
     except:
         messages.error(request, "Failed to Delete Staff.")
         return redirect('manage_staff')
-
-
 
 
 def add_course(request):
@@ -237,11 +234,11 @@ def edit_course_save(request):
             course.save()
 
             messages.success(request, "Course Updated Successfully.")
-            return redirect('/edit_course/'+course_id)
+            return redirect('/edit_course/' + course_id)
 
         except:
             messages.error(request, "Failed to Update Course.")
-            return redirect('/edit_course/'+course_id)
+            return redirect('/edit_course/' + course_id)
 
 
 def delete_course(request, course_id):
@@ -309,10 +306,10 @@ def edit_session_save(request):
             session_year.save()
 
             messages.success(request, "Session Year Updated Successfully.")
-            return redirect('/edit_session/'+session_id)
+            return redirect('/edit_session/' + session_id)
         except:
             messages.error(request, "Failed to Update Session Year.")
-            return redirect('/edit_session/'+session_id)
+            return redirect('/edit_session/' + session_id)
 
 
 def delete_session(request, session_id):
@@ -332,8 +329,6 @@ def add_student(request):
         "form": form
     }
     return render(request, 'hod_template/add_student_template.html', context)
-
-
 
 
 def add_student_save(request):
@@ -366,9 +361,9 @@ def add_student_save(request):
             else:
                 profile_pic_url = None
 
-
             try:
-                user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=3)
+                user = CustomUser.objects.create_user(username=username, password=password, email=email,
+                                                      first_name=first_name, last_name=last_name, user_type=3)
                 user.students.address = address
 
                 course_obj = Courses.objects.get(id=course_id)
@@ -382,6 +377,14 @@ def add_student_save(request):
                 user.students.enrolment_num = enrolment_num
                 user.save()
                 messages.success(request, "Student Added Successfully!")
+                send_mail_to_student(
+                    email=email,
+                    username=username,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    enrolment_num=enrolment_num
+                )
                 return redirect('add_student')
             except Exception as e:
                 print(e)
@@ -480,12 +483,12 @@ def edit_student_save(request):
                 del request.session['student_id']
 
                 messages.success(request, "Student Updated Successfully!")
-                return redirect('/edit_student/'+student_id)
+                return redirect('/edit_student/' + student_id)
             except:
                 messages.success(request, "Failed to Uupdate Student.")
-                return redirect('/edit_student/'+student_id)
+                return redirect('/edit_student/' + student_id)
         else:
-            return redirect('/edit_student/'+student_id)
+            return redirect('/edit_student/' + student_id)
 
 
 def delete_student(request, student_id):
@@ -509,7 +512,6 @@ def add_subject(request):
     return render(request, 'hod_template/add_subject_template.html', context)
 
 
-
 def add_subject_save(request):
     if request.method != "POST":
         messages.error(request, "Method Not Allowed!")
@@ -520,12 +522,12 @@ def add_subject_save(request):
 
         course_id = request.POST.get('course')
         course = Courses.objects.get(id=course_id)
-        
+
         staff_id = request.POST.get('staff')
         staff = CustomUser.objects.get(id=staff_id)
 
         try:
-            subject = Subjects(subject_name=subject_name,subject_code=subject_code, course_id=course, staff_id=staff)
+            subject = Subjects(subject_name=subject_name, subject_code=subject_code, course_id=course, staff_id=staff)
             subject.save()
             messages.success(request, "Subject Added Successfully!")
             return redirect('add_subject')
@@ -575,18 +577,17 @@ def edit_subject_save(request):
 
             staff = CustomUser.objects.get(id=staff_id)
             subject.staff_id = staff
-            
+
             subject.save()
 
             messages.success(request, "Subject Updated Successfully.")
             # return redirect('/edit_subject/'+subject_id)
-            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id":subject_id}))
+            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id": subject_id}))
 
         except:
             messages.error(request, "Failed to Update Subject.")
-            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id":subject_id}))
+            return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id": subject_id}))
             # return redirect('/edit_subject/'+subject_id)
-
 
 
 def delete_subject(request, subject_id):
@@ -610,6 +611,7 @@ def add_resource(request):
     }
     return render(request, 'hod_template/add_resource_material.html', context)
 
+
 def add_resource_save(request):
     if request.method != "POST":
         messages.error(request, "Method Not Allowed!")
@@ -624,20 +626,23 @@ def add_resource_save(request):
 
         local_path = f"media/{course_get_qs.course_name}/{subject_get_qs.subject_code}/{material_type}/"
 
-        path = Path(local_path).mkdir(exist_ok=True,parents=True)
+        path = Path(local_path).mkdir(exist_ok=True, parents=True)
 
         if request.FILES:
             files = request.FILES.getlist('fileobs1[]')
             for request_file in files:
-                print("request_file : ",request_file)
+                print("request_file : ", request_file)
                 filename = request_file.name
                 fs = FileSystemStorage()
-                file_path_without_media = fs.save(f"{course_get_qs.course_name}/{subject_get_qs.subject_code}/{material_type}/" + filename, request_file)
-                file_path = "media/"+file_path_without_media
+                file_path_without_media = fs.save(
+                    f"{course_get_qs.course_name}/{subject_get_qs.subject_code}/{material_type}/" + filename,
+                    request_file)
+                file_path = "media/" + file_path_without_media
                 s3_path = f"{course_get_qs.course_name}/{subject_get_qs.subject_code}/{material_type}/{filename}"
 
-                s3_file_url, is_upload_successful = upload_file_to_s3(bucket=settings.S3_BUCKET, local_file=file_path,s3_file=s3_path)
-                print("is_upload_successful: ",is_upload_successful)
+                s3_file_url, is_upload_successful = upload_file_to_s3(bucket=settings.S3_BUCKET, local_file=file_path,
+                                                                      s3_file=s3_path)
+                print("is_upload_successful: ", is_upload_successful)
                 if is_upload_successful:
                     url_qs = ResourceUrls.objects.create(url=s3_file_url)
                     Resources.objects.create(
@@ -651,6 +656,7 @@ def add_resource_save(request):
         else:
             messages.error(request, "No File Uploaded!")
             return redirect('add_resource')
+
 
 @csrf_exempt
 def check_email_exist(request):
@@ -670,7 +676,6 @@ def check_username_exist(request):
         return HttpResponse(True)
     else:
         return HttpResponse(False)
-
 
 
 def student_feedback_message(request):
@@ -725,6 +730,7 @@ def student_leave_view(request):
         "leaves": leaves
     }
     return render(request, 'hod_template/student_leave_view.html', context)
+
 
 def student_leave_approve(request, leave_id):
     leave = LeaveReportStudent.objects.get(id=leave_id)
@@ -791,7 +797,8 @@ def admin_get_attendance_dates(request):
     list_data = []
 
     for attendance_single in attendance:
-        data_small={"id":attendance_single.id, "attendance_date":str(attendance_single.attendance_date), "session_year_id":attendance_single.session_year_id.id}
+        data_small = {"id": attendance_single.id, "attendance_date": str(attendance_single.attendance_date),
+                      "session_year_id": attendance_single.session_year_id.id}
         list_data.append(data_small)
 
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
@@ -808,7 +815,9 @@ def admin_get_attendance_student(request):
     list_data = []
 
     for student in attendance_data:
-        data_small={"id":student.student_id.admin.id, "name":student.student_id.admin.first_name+" "+student.student_id.admin.last_name, "status":student.status}
+        data_small = {"id": student.student_id.admin.id,
+                      "name": student.student_id.admin.first_name + " " + student.student_id.admin.last_name,
+                      "status": student.status}
         list_data.append(data_small)
 
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
@@ -817,7 +826,7 @@ def admin_get_attendance_student(request):
 def admin_profile(request):
     user = CustomUser.objects.get(id=request.user.id)
 
-    context={
+    context = {
         "user": user
     }
     return render(request, 'hod_template/admin_profile.html', context)
@@ -844,7 +853,6 @@ def admin_profile_update(request):
         except:
             messages.error(request, "Failed to Update Profile")
             return redirect('admin_profile')
-    
 
 
 def staff_profile(request):
@@ -853,6 +861,3 @@ def staff_profile(request):
 
 def student_profile(requtest):
     pass
-
-
-

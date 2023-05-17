@@ -45,6 +45,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'student_management_app.LoginCheckMiddleWare.LoginCheckMiddleWare',
+    'student_management_system.middleware.CustomMiddleware',
 ]
 
 ROOT_URLCONF = 'student_management_system.urls'
@@ -109,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -136,6 +137,14 @@ AUTH_USER_MODEL = "student_management_app.CustomUser"
 
 # Registering Custom Backend "EmailBackEnd"
 AUTHENTICATION_BACKENDS = ['student_management_app.EmailBackEnd.EmailBackEnd']
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'bkaustav416@gmail.com'
+EMAIL_HOST_PASSWORD = '@Kaustavb99'
+BASE_EMAIL_ID = "bkaustav416@gmail.com"
 
 
 os.environ["AWS_CONFIG_FILE"] = "resources\\virtual_study_center\\config\\config.ini"
