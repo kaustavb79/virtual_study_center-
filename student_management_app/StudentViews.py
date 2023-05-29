@@ -1,10 +1,15 @@
+import json
+
+import requests
+from django.conf import settings
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib import messages
 from django.core.files.storage import FileSystemStorage  # To upload Profile Picture
 from django.urls import reverse
 import datetime  # To Parse input DateTime into Python Date Time Object
 
+from student_management_app.executor import execute_code
 from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, \
     LeaveReportStudent, FeedBackStudent, StudentResult, Resources
 
@@ -207,3 +212,47 @@ def student_view_library(request):
         "resources":resources
     }
     return render(request, "student_template/student_view_library.html", context)
+
+
+# ONLINE COMPILER
+def student_code_compiler_view(request):
+    template = "student_template/student_online_code_compiler.html"
+    context = {
+        "lang_config":json.dumps(settings.LANG_CONFIG_FILE),
+        "api_url":request.api_url
+    }
+    return render(request,template,context)
+
+
+def execute(request):
+    data = json.loads(request.body.decode())
+    code = data[0]["content"] + "\n"
+    stdin = data[0]["content_stdin"]
+    language = data[0]["language"]
+    class_name = data[0]["class_name"]
+    status = "failure"
+    is_valid = False
+
+    print("---code---", code)
+    print("---stdin---", stdin)
+    print("---language---", language)
+    print("---class_name---", class_name)
+
+    response_data = ""
+    try:
+        response_data = execute_code(code, stdin, language, class_name)
+    except Exception as e:
+        print("Exception: ", e)
+    else:
+        is_valid = True
+        status = "success"
+
+    context_payload = {
+        "status": status,
+        "is_valid": is_valid,
+        "result": {
+            "response_data": response_data
+        },
+    }
+
+    return JsonResponse(context_payload)

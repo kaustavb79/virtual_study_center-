@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
@@ -211,3 +213,18 @@ def save_user_profile(sender, instance, **kwargs):
         instance.staffs.save()
     if instance.user_type == 3:
         instance.students.save()
+
+
+class CompilerAPIModel(models.Model):
+    request_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    source_code = models.TextField(null=True, blank=False)
+    additional_file = models.FileField(upload_to='compiler/script/', null=True, blank=True)
+    code_language = models.CharField(max_length=10)
+    final_response = models.TextField(null=True, blank=True)
+    added_on = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"{self.code_language} file --- {self.request_id}"
+
+    class Meta:
+        ordering = ('-added_on',)

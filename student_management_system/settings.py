@@ -6,7 +6,6 @@ import boto3
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
@@ -16,9 +15,7 @@ SECRET_KEY = '(i#*06f#keydy_fh17bf=$0f6v)^wr^l7*u4gq42m*sztu#2_m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-
 
 # Application definition
 
@@ -68,11 +65,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'student_management_system.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DB_CONFIG = json.load(open(os.path.join(BASE_DIR, 'resources', 'virtual_study_center', 'config', "db_config.json"), "r+"))
+DB_CONFIG = json.load(
+    open(os.path.join(BASE_DIR, 'resources', 'virtual_study_center', 'config', "db_config.json"), "r+"))
 
 DATABASES = {
     'default': {
@@ -84,7 +81,6 @@ DATABASES = {
         'PORT': DB_CONFIG['mysql']['port'],
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -104,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -118,12 +113,11 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -131,8 +125,7 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
-#For Custom USER
+# For Custom USER
 AUTH_USER_MODEL = "student_management_app.CustomUser"
 
 # Registering Custom Backend "EmailBackEnd"
@@ -142,15 +135,17 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'bkaustav416@gmail.com'
-EMAIL_HOST_PASSWORD = '@Kaustavb99'
-BASE_EMAIL_ID = "bkaustav416@gmail.com"
-
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+BASE_EMAIL_ID = ""
 
 os.environ["AWS_CONFIG_FILE"] = "resources\\virtual_study_center\\config\\config.ini"
 S3_BUCKET = "ignouresources"
 session = boto3.Session(profile_name="study_cent")
 S3_CLIENT = session.client('s3')
+
+with open('resources/virtual_study_center/lang_config.json') as lang_config_file:
+    LANG_CONFIG_FILE = json.load(lang_config_file)
 
 """
 ----- DJANGO LOGGER -----
@@ -159,7 +154,7 @@ S3_CLIENT = session.client('s3')
 LOGS_DIR = BASE_DIR + "/logs"
 
 if os.path.exists(LOGS_DIR) and os.path.isdir(LOGS_DIR):
-    print("LOGS_DIR: ",LOGS_DIR)
+    print("LOGS_DIR: ", LOGS_DIR)
 else:
     os.mkdir(LOGS_DIR)
 

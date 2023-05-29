@@ -95,4 +95,6 @@ urlpatterns = [
     path('student_profile_update/', StudentViews.student_profile_update, name="student_profile_update"),
     path('student_view_result/', StudentViews.student_view_result, name="student_view_result"),
     path('student_view_library/', StudentViews.student_view_library, name="student_view_library"),
+
+    path('api/compile/', StudentViews.execute, name="compile"),
 ]

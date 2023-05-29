@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, AdminHOD, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, \
     LeaveReportStudent, LeaveReportStaff, FeedBackStudent, FeedBackStaffs, NotificationStudent, NotificationStaffs, \
-    ResourceUrls, Resources
+    ResourceUrls, Resources, CompilerAPIModel
 
 
 # Register your models here.
@@ -27,3 +27,4 @@ admin.site.register(NotificationStudent)
 admin.site.register(NotificationStaffs)
 admin.site.register(ResourceUrls)
 admin.site.register(Resources)
+admin.site.register(CompilerAPIModel)
