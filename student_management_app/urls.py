@@ -97,4 +97,5 @@ urlpatterns = [
     path('student_view_library/', StudentViews.student_view_library, name="student_view_library"),
 
     path('api/compile/', StudentViews.execute, name="compile"),
+    path('student_home/compiler_view/', StudentViews.student_code_compiler_view, name="compiler_view"),
 ]

@@ -62,9 +62,20 @@
             <li class="nav-item">
               {% url 'student_view_library' as student_view_library %}
               <a href="{{ student_view_library }}" class="nav-link {% if request.path == student_view_library %} active {% endif %}">
-                <i class="nav-icon fas fa fa-file-pdf-o"></i>
+                <i class="nav-icon fas fa-file-pdf-o"></i>
                 <p>
                   Digital Library
+                  {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
+                </p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              {% url 'compiler_view' as compiler_view %}
+              <a href="{{ compiler_view }}" class="nav-link {% if request.path == compiler_view %} active {% endif %}">
+                <i class="nav-icon fas fa-code fa-solid"></i>
+                <p>
+                  Online Compiler
                   {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
                 </p>
               </a>
