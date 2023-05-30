@@ -225,34 +225,34 @@ def student_code_compiler_view(request):
 
 
 def execute(request):
-    data = json.loads(request.body.decode())
-    code = data[0]["content"] + "\n"
-    stdin = data[0]["content_stdin"]
-    language = data[0]["language"]
-    class_name = data[0]["class_name"]
     status = "failure"
     is_valid = False
 
-    print("---code---", code)
-    print("---stdin---", stdin)
-    print("---language---", language)
-    print("---class_name---", class_name)
-
     response_data = ""
-    try:
-        response_data = execute_code(code, stdin, language, class_name)
-    except Exception as e:
-        print("Exception: ", e)
-    else:
-        is_valid = True
-        status = "success"
+    if request.method == "POST":
+        code = request.POST.get("code") + "\n"
+        stdin = request.POST.get("code_input")
+        class_name = request.POST.get("class_name")
+        language = request.POST.get("language")
+
+        print("---code---", code)
+        print("---stdin---", stdin)
+        print("---language---", language)
+        print("---class_name---", class_name)
+
+        try:
+            response_data = execute_code(code, stdin, language, class_name)
+        except Exception as e:
+            print("Exception: ", e)
+            response_data = str(e)
+        else:
+            is_valid = True
+            status = "success"
 
     context_payload = {
         "status": status,
         "is_valid": is_valid,
-        "result": {
-            "response_data": response_data
-        },
+        "response_data": response_data,
     }
 
     return JsonResponse(context_payload)

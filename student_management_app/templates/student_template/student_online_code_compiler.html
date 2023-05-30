@@ -19,37 +19,49 @@
             <div class="row py-3">
                 <div class="col-md-6 px-2">
                     <h4>Source</h4>
-                    <form action="{% url 'compile' %}" method="POST">
-                        <div>
-                            <select id="language_selection">
-                              <option value="py3">Python3</option>
-                              <option value="java" selected="selected">Java</option>
-                              <option value="c">C</option>
-                              <option value="cpp">C++</option>
-                              <option value="cs">C#</option>
-                              <option value="vb">VB.NET</option>
-                              <option value="r">R</option>
-                              <option value="rb">Ruby</option>
-                              <option value="go">Go</option>
-                              <option value="pl">Perl</option>
-                              <option value="node_js">NodeJS</option>
-                          </select>
-                            <input type="text" placeholder="class name" id="class_name" name="class_name"><br><br>
+                    <form name="compile" id="compiler_form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col">
+                                <select class="form-select" name="language" aria-label="Default select example">
+                                  <option selected>Open this select menu</option>
+                                  <option value="py3">Python3</option>
+                                  <option value="java" selected="selected">Java</option>
+                                  <option value="c">C</option>
+                                  <option value="cpp">C++</option>
+                                  <option value="cs">C#</option>
+                                  <option value="vb">VB.NET</option>
+                                  <option value="r">R</option>
+                                  <option value="rb">Ruby</option>
+                                  <option value="go">Go</option>
+                                  <option value="pl">Perl</option>
+                                  <option value="node_js">NodeJS</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <div class="input-group my-3">
+                                  <span class="input-group-text">Class Name</span>
+                                  <input type="text" class="form-control" name="class_name" placeholder="CLASS (IF ANY)" aria-label="class_name" aria-describedby="basic-addon1">
+                                </div>
+                            </div>
                         </div>
 
-                        <textarea style="height: 17em;" class="u-full-width" placeholder="Write your Code here" id="code" name="code">
-                        </textarea>
+                        <div class=" row input-group my-3">
+                          <span class="input-group-text">Code *</span>
+                          <textarea class="form-control" placeholder="Write your Code here" name="code" aria-label="Code"></textarea>
+                        </div>
 
-                        <h4>Stdin</h4>
-                        <textarea style="height: 6em;" class="u-full-width" placeholder="Enter your user input here!!" id="code_input"
-                                  name="code_input"></textarea>
-                        <input id="btnExecute" class="button-primary" type="button" value="Try me!">
-
+                        <div class=" row input-group my-3">
+                          <span class="input-group-text">STDIN</span>
+                          <textarea class="form-control" placeholder="Enter your user input here!!" name="code_input" aria-label="Code"></textarea>
+                        </div>
+                        <button class="w-40 btn btn-lg btn-primary my-4" type="submit">Compile</button>
                     </form>
                 </div>
                 <div class="col-md-6 px-2">
                     <h4>Console</h4>
-                    <div id="result">Result will be displayed here (Formatted)</div>
+<!--                    <div id="result">Result will be displayed here (Formatted)</div>-->
+                    <div id="result">Hello World</div>
                 </div>
             </div>
 
@@ -59,51 +71,24 @@
   {% endblock main_content %}
 
 {% block custom_js %}
-function execution_done_callback() {
-    if (httpRequest.readyState === XMLHttpRequest.DONE) {
-      if (httpRequest.status === 200) {
-        data = JSON.parse(httpRequest.responseText)
-        console.log(data.result.result);
-<!--        document.getElementById("result").innerHTML = data.result;-->
-        document.getElementById("result").innerHTML = data["result"]["response_data"];
-      } else {
-        alert('There was a problem with the request.');
-      }
-    }
-  }
+$('#compiler_form').on('submit',function(event){
+    event.preventDefault();
 
-  function execute() {
-    httpRequest = new XMLHttpRequest();
+    var formData = new FormData(document.getElementsByName('compile')[0]);
+    console.log(formData)
 
-    if (!httpRequest) {
-      alert('Giving up :( Cannot create an XMLHTTP instance');
-      return false;
-    }
-
-    httpRequest.onreadystatechange = execution_done_callback;
-    httpRequest.open('POST', "/compile", true);
-    httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-
-    content = (document.getElementById("code").value)
-    content_stdin = (document.getElementById("code_input").value)
-    language_selection = (document.getElementById("language_selection").value)
-    class_name = (document.getElementById("class_name").value)
-
-
-    var payload = []; // create an empty array
-
-    payload.push({
-        "content": content,
-        "content_stdin": content_stdin,
-        "language":language_selection,
-        "class_name":class_name
+    $.ajax({
+        type: "POST",
+        url: "{% url 'compile' %}",// where you wanna post
+        data: formData,
+        processData: false,
+        contentType: false,
+        error: function(jqXHR, textStatus, errorMessage) {
+            console.log(errorMessage); // Optional
+        },
+        success: function(data) {
+            $('#result').text(data['response_data']);
+        }
     });
-
-<!--    httpRequest.send(content);-->
-    httpRequest.send(JSON.stringify(payload));
-  }
-
-  window.onload = function() {
-    document.getElementById("btnExecute").onclick = execute;
-  }
+});
 {% endblock custom_js %}
